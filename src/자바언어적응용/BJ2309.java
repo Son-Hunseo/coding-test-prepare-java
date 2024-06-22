@@ -1,10 +1,13 @@
+package 자바언어적응용;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-public class Main {
+public class BJ2309 {
     public static void main(String[] args) throws IOException {
 
         int[] data = new int[9];
