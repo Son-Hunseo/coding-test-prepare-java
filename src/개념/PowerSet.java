@@ -20,7 +20,7 @@ public class PowerSet {
         powerSet(elementIndex + 1);
 
         elementUsedArray[elementIndex] = false;
-        powerSet(elementIndex);
+        powerSet(elementIndex + 1);
     }
 
     public static void main(String[] args) {
