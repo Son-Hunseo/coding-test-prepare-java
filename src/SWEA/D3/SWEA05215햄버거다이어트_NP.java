@@ -3,6 +3,7 @@ package SWEA.D3;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 /**
@@ -15,10 +16,10 @@ import java.util.StringTokenizer;
  * 1. 테스트 케이스 수 T 입력받음
  * 2. 재료의 수 N, 제한 칼로리 L을 입력 받는다.
  * 3. 다음 N개의 줄에는 재료의 맛에 대한 점수와 칼로리를 나타내는 T_i, K_i를 입력 받는다.
- * 4. 부분집합을 이용하여 모든 재료의 부분집합 중 제한 칼로리 이하이면서 가장 맛에 대한 점수가 높은 햄버거의 점수를 출력
+ * 4. Next Permutation을 이용하여 구한 조합 중 제한 칼로리 이하이면서 가장 맛에 대한 점수가 높은 햄버거의 점수를 출력
  */
 
-public class SWEA05215햄버거다이어트_부분집합 {
+public class SWEA05215햄버거다이어트_NP {
 
     static BufferedReader br;
     static StringTokenizer st;
@@ -26,7 +27,6 @@ public class SWEA05215햄버거다이어트_부분집합 {
     static int maxCal;
     static int result;
     static int numOfIngre;
-    static int numOfSelect;
     static Ingredient[] allIngreArr;
     static Ingredient[] selectedIngreArr;
 
@@ -56,22 +56,36 @@ public class SWEA05215햄버거다이어트_부분집합 {
             }
 
 
-            // 4. 부분집합을 이용하여 모든 재료의 부분집합 중 제한 칼로리 이하이면서 가장 맛에 대한 점수가 높은 햄버거의 점수를 출력
+            // 4. Next Permutation을 이용하여 구한 조합 중 제한 칼로리 이하이면서 가장 맛에 대한 점수가 높은 햄버거의 점수를 출력
             result = 0;
-            selectedIngreArr = new Ingredient[numOfIngre];
-            numOfSelect = numOfIngre;
-            findRecipe(0, 0);
+            // 4-1. 조합을 이용하여 구하려면, nC1 ~ nCn 까지 다 해봐야한다. (r은 nCr의 r이다.)
+            for (int r = 1; r <= numOfIngre; r++) {
+                selectedIngreArr = new Ingredient[r];
+                findRecipe(r);
+            }
 
             System.out.printf("#%d %d\n", test_case, result);
         }
 
     }
 
-    static void findRecipe(int allIngreCnt, int selectedIngreCnt) {
+    static void findRecipe(int r) {
 
-        // 부분집합이 완성 되었을 때, 해당 조합의 칼로리가 제한 칼로리 이하인지 확인하고, 이하라면
-        // 최고 점수와 비교하고 최고 점수 이상이라면 갱신한다.
-        if (selectedIngreCnt == numOfSelect || allIngreCnt == numOfIngre) {
+        // nextPermutation을 응용하여 조합을 찾기위한 배열
+        int[] arrayToCombi = new int[numOfIngre];
+        for (int cnt = 1; cnt <= r; cnt++) {
+            arrayToCombi[numOfIngre-cnt] = 1;
+        }
+
+        do {
+            int cnt = 0;
+            for (int ingreIdx = 0; ingreIdx < numOfIngre; ingreIdx++) {
+                if (arrayToCombi[ingreIdx] == 1) {
+                    selectedIngreArr[cnt] = allIngreArr[ingreIdx];
+                    cnt++;
+                }
+            }
+
             int curCal = 0;
             int curScore = 0;
 
@@ -82,7 +96,7 @@ public class SWEA05215햄버거다이어트_부분집합 {
 
                 // 제한 칼로리가 넘으면 고려할 필요 없다.
                 if (curCal > maxCal) {
-                    return;
+                    break;
                 }
 
             }
@@ -93,26 +107,52 @@ public class SWEA05215햄버거다이어트_부분집합 {
                     result = curScore;
                 }
             }
-            return;
+
+        } while (np(arrayToCombi));
+
+    }
+
+    static boolean np(int[] inputArray) {
+
+        int inputSize = inputArray.length;
+
+        // 꼭대기 i 찾기
+        int top = inputSize - 1;
+        while (top > 0 && inputArray[top-1] >= inputArray[top]) {
+            top--;
         }
 
-        // 현재 재료 선택
-        selectedIngreArr[selectedIngreCnt] = allIngreArr[allIngreCnt];
-        findRecipe(allIngreCnt + 1, selectedIngreCnt + 1);
+        if (top == 0) {
+            return false;
+        }
 
-        // 현재 재료를 선택 X
-        selectedIngreArr[selectedIngreCnt] = new Ingredient(0, 0);
-        findRecipe(allIngreCnt + 1, selectedIngreCnt);
+        int target = inputSize - 1;
+        while(inputArray[top-1] >= inputArray[target]) {
+            target--;
+        }
 
+        swap(inputArray, top - 1, target);
+
+        int k = inputSize - 1;
+        while (top < k) {
+            swap(inputArray, top++, k--);
+        }
+        return true;
+    }
+
+    static void swap(int[] inputArray, int i, int j) {
+        int temp = inputArray[i];
+        inputArray[i] = inputArray[j];
+        inputArray[j] = temp;
     }
 
 }
 
-//class Ingredient {
-//    int score;
-//    int cal;
-//    Ingredient(int score, int cal) {
-//        this.score = score;
-//        this.cal = cal;
-//    }
-//}
+class Ingredient {
+    int score;
+    int cal;
+    Ingredient(int score, int cal) {
+        this.score = score;
+        this.cal = cal;
+    }
+}
