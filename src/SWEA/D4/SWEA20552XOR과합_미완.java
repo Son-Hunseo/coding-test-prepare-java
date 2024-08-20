@@ -43,7 +43,7 @@ import java.util.StringTokenizer;
  *
  */
 
-public class SWEA20552XOR과합 {
+public class SWEA20552XOR과합_미완 {
 
     static BufferedReader br;
     static StringTokenizer st;

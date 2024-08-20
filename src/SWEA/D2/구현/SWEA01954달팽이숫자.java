@@ -1,10 +1,8 @@
-package SWEA.D2;
+package SWEA.D2.구현;
 
-import javax.imageio.IIOException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.StringTokenizer;
 
 /** SWEA 1954 달팽이 숫자
  *

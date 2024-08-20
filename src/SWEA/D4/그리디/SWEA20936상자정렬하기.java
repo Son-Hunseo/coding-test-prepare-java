@@ -1,4 +1,4 @@
-package SWEA.D4;
+package SWEA.D4.그리디;
 
 import java.io.*;
 import java.util.*;

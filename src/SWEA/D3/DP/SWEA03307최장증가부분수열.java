@@ -11,7 +11,7 @@ import java.util.StringTokenizer;
  * - 전형적인 dp 문제 (LIS)
  */
 
-public class SWEA3307최장증가부분수열 {
+public class SWEA03307최장증가부분수열 {
 
     static BufferedReader br;
     static StringTokenizer st;

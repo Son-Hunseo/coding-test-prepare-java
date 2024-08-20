@@ -1,4 +1,4 @@
-package SWEA.D5;
+package SWEA.D5.완전탐색;
 
 import javax.imageio.IIOException;
 import java.io.BufferedReader;

@@ -1,4 +1,4 @@
-package SWEA.모의;
+package SWEA.모의A;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  * 7. 결과 출력
  */
 
-public class SWEA0412요리사 {
+public class SWEA00412요리사 {
 
     static BufferedReader br;
     static StringTokenizer st;

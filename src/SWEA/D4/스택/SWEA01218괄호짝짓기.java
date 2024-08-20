@@ -1,4 +1,4 @@
-package SWEA.D4;
+package SWEA.D4.스택;
 
 import java.io.BufferedReader;
 import java.io.IOException;

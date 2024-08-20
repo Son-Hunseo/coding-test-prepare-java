@@ -1,39 +1,46 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
 
-    static int N, R;
-    static int[] input, numbers;
+    static class Meeting implements Comparable<Meeting> {
+        int start, end;
+
+        public Meeting (int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        public int compareTo(Meeting o) { // 종료시간이 빠른 순, 같다면 시작시간이 빠른 순
+            return this.end != o.end ? this.end - o.end : this.start - o.start;
+        }
+
+    }
+
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-        N = sc.nextInt();
-        R = sc.nextInt();
-        input = new int[N];
-        numbers = new int[R];
-
+        int N = sc.nextInt();
+        Meeting[] meetings = new Meeting[N];
         for (int i = 0; i < N; i++) {
-            input[i] = sc.nextInt();
+            meetings[i] = new Meeting(sc.nextInt(), sc.nextInt());
         }
 
-        permutation(0, 0);
-    }
+        Arrays.sort(meetings);
+        ArrayList<Meeting> result = new ArrayList<>();
+        result.add(meetings[0]);
 
-    static void permutation(int cnt, int flag) {
-
-        if (cnt == R) {
-            System.out.println(Arrays.toString(numbers));
-            return;
-        }
-
-        for (int i = 0; i < N; i++) {
-            if ((flag & 1 << i) != 0) {
-                continue;
+        for (int i = 1; i < N; i++) {
+            if(result.get(result.size()-1).end <= meetings[i].start) {
+                result.add(meetings[i]);
             }
-            numbers[cnt] = input[i];
-            permutation(cnt + 1, flag | 1 << i);
         }
-    }
 
+        System.out.println(result.size());
+        for (Meeting meeting : result) {
+            System.out.println(meeting.start + "-" + meeting.end);
+        }
+
+    }
 }

@@ -1,4 +1,4 @@
-package SWEA.D2;
+package SWEA.D2.누적합;
 
 import java.io.BufferedReader;
 import java.io.IOException;
