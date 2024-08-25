@@ -1,4 +1,4 @@
-package SWEA.미분류;
+package SWEA.모의A;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.util.*;
  *
  */
 
-public class SWEA05648원자소멸시뮬레이션 {
+public class SWEA05648원자소멸시뮬레이션Queue {
 
     static BufferedReader br;
     static StringTokenizer st;
