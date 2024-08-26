@@ -1,61 +1,77 @@
-/*
-8
-1 1 0 0 0 0 1 1
-1 1 0 0 0 0 1 1
-0 0 0 0 1 1 0 0
-0 0 0 0 1 1 0 0
-1 0 0 0 1 1 1 1
-0 1 0 0 1 1 1 1
-0 0 1 1 1 1 1 1
-0 0 1 1 1 1 1 1
-*/
-
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.Scanner;
+
+/*
+7
+8
+0 1
+0 2
+0 5
+0 6
+4 3
+5 3
+5 4
+6 4
+ */
 
 public class Main {
 
-    static int N, map[][], white, green;
+    static int V;
+    static int[][] adjMatrix;
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
+        V = sc.nextInt(); // 정점의 수
+        int E = sc.nextInt(); // 간선의 수
 
-        N = sc.nextInt();
-        map = new int[N][N];
+        // 무향 그래프
+        adjMatrix = new int[V][V]; // 기본 초기화값 0: 인접하지 않는 상태
 
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                map[i][j] = sc.nextInt();
-            }
+        for (int i = 0; i < E; ++i) {
+            int from = sc.nextInt();
+            int to = sc.nextInt();
+            adjMatrix[to][from] = adjMatrix[from][to] = 1;
         }
-        cut(0, 0, N);
-        System.out.println(white);
-        System.out.println(green);
+        bfs1(0);
     }
 
-    static void cut(int r, int c, int size) {
+    private static void bfs1(int start) {
+        Queue<Integer> queue = new ArrayDeque<>();
+        boolean[] visited = new boolean[V];
 
-        // 주어진 공간이 모두 같은 색으로 이루어졌는지 체크
-        int sum = 0;
-        for (int i = r, rEnd = r + size; i < rEnd; i++) {
-            for (int j = c, cEnd = c + size; j < cEnd; j++) {
-                sum += map[i][j];
+        visited[start] = true;
+        queue.offer(start);
+
+        while(!queue.isEmpty()) {
+            int cur = queue.poll();
+            System.out.println((char)(cur+65));
+
+            for(int i=0; i<V; i++) {
+                if(adjMatrix[cur][i] == 0 || visited[i]) continue;
+
+                visited[i] = true;
+                queue.offer(i);
             }
         }
+    }
 
-        // 같은색이며녀 분할하지 않음
-        if (sum == 0) {
-            white++;
-        } else if (sum == size * size) {
-            green++;
-        } else { // 같은색으로 이루어져 있지 않으면 4분할
-            int half = size/2;
-            cut(r, c, half);
-            cut(r, c+half, half);
-            cut(r+half, c, half);
-            cut(r+half, c+half, half);
+    private static void bfs2(int start) {
+        Queue<Integer> queue = new ArrayDeque<>();
+        boolean[] visited = new boolean[V];
+
+        queue.offer(start);
+
+        while(!queue.isEmpty()) {
+            int cur = queue.poll();
+            System.out.println((char)(cur+65));
+
+            for(int i=0; i<V; i++) {
+                if(adjMatrix[cur][i] == 0 || visited[i]) continue;
+
+                queue.offer(i);
+            }
         }
-
     }
 
 }
