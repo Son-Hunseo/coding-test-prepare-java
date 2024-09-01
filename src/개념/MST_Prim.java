@@ -20,7 +20,7 @@ public class MST_Prim {
         }
 
         Arrays.fill(minEdge, Integer.MAX_VALUE);
-        minEdge[0] = 0; // 0번 정점을 트리의 시작 정짐이 되도락 함 (다른 정점이어도 상관 없음)
+        minEdge[0] = 0; // 0번 정점을 트리의 시작 정점이 되도락 함 (다른 정점이어도 상관 없음)
         int cost = 0;
 
         int i = 0;

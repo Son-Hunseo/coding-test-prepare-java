@@ -64,7 +64,6 @@ public class 재선이의연구실네트워크구성하기 {
 
                     if (curInfo == 9) {
                         APInfoList.add(new int[]{rowIdx, colIdx});
-                        continue;
                     }
                     else if (curInfo != 0) {
                         hubInfoList.add(new int[]{rowIdx, colIdx, curInfo});
@@ -74,15 +73,8 @@ public class 재선이의연구실네트워크구성하기 {
 
             result = Integer.MAX_VALUE;
 
-            for (int selectCnt = 1; selectCnt <= APInfoList.size(); selectCnt++) {
-                CombiList = new ArrayList<>();
-                tempIsConnected = false;
-                getCombinationAndCheckConnect(0, 0, selectCnt);
-                if (tempIsConnected) {
-                    result = selectCnt;
-                    break;
-                }
-            }
+            CombiList = new ArrayList<>();
+            getCombinationAndCheckConnect(0, 0);
 
             if (result == Integer.MAX_VALUE) {
                 result = -1;
@@ -92,57 +84,45 @@ public class 재선이의연구실네트워크구성하기 {
         }
     }
 
+    static void getCombinationAndCheckConnect(int selectedIdx, int APListIdx) {
 
-    static boolean tempIsConnected;
-    static void getCombinationAndCheckConnect(int selectedIdx, int APListIdx, int R) {
-
-        // 기저 1
-        if (selectedIdx == R) {
-            if (isConnnected(CombiList)) {
-                tempIsConnected = true;
-            }
+        // 연결되었을 경우, 해당 방향으로 더이상 재귀를 들어갈 필요가 없다.
+        if (isConnnected(CombiList)) {
+            result = Math.min(result, CombiList.size());
             return;
         }
 
-        // 기저 2
+        // 기저
         if (APListIdx == APInfoList.size()) {
             return;
         }
 
         CombiList.add(APInfoList.get(APListIdx));
-        getCombinationAndCheckConnect(selectedIdx + 1, APListIdx + 1, R);
+        getCombinationAndCheckConnect(selectedIdx + 1, APListIdx + 1);
 
-        CombiList.remove(CombiList.size() - 1);
-        getCombinationAndCheckConnect(selectedIdx, APListIdx + 1, R);
+        CombiList.remove(APInfoList.get(APListIdx));
+        getCombinationAndCheckConnect(selectedIdx, APListIdx + 1);
     }
 
     // 3. 공유기와 연결된 여부 체크
     static boolean isConnnected(ArrayList<int[]> selectedAPInfoList) {
 
-        boolean isCon = true;
-
         // 3-1. 공유기와 AP의 거리로 연결여부를 체크할 수 있다.
-        boolean[] ConCheckArr = new boolean[hubInfoList.size()];
+        boolean result = true;
+
+        if (selectedAPInfoList.size() == 0) {
+            return false;
+        }
 
         for (int hubIdx = 0; hubIdx < hubInfoList.size(); hubIdx++) {
-            boolean temp = false;
             for (int[] AP : selectedAPInfoList) {
-                if (Math.abs(hubInfoList.get(hubIdx)[0] - AP[0]) + Math.abs(hubInfoList.get(hubIdx)[1] - AP[1]) <= rangeOfAP + hubInfoList.get(hubIdx)[2]) {
-                    temp = true;
+                if (Math.abs(hubInfoList.get(hubIdx)[0] - AP[0]) + Math.abs(hubInfoList.get(hubIdx)[1] - AP[1]) > rangeOfAP + hubInfoList.get(hubIdx)[2]) {
+                    return false;
                 }
             }
-            ConCheckArr[hubIdx] = temp;
         }
 
-        // 3-4. 이렇게 체크하면서 모든 공유기가 AP와 연결이 되었는지의 여부를 리턴한다.
-        for (boolean check : ConCheckArr) {
-            if (!check) {
-                isCon = false;
-                break;
-            }
-        }
-
-        return isCon;
+        return result;
     }
 
 }

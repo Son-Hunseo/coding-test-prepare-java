@@ -142,8 +142,6 @@ public class SWEA01251하나로_크루스칼 {
         return true;
     }
 
-    //
-
     // - 간선 클래스
     static class Edge implements Comparable<Edge> {
 

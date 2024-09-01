@@ -16,19 +16,17 @@ import java.util.StringTokenizer;
  * 1-4. 환경 부담 세율을 입력받는다. (실수)
  *
  * 2. 프림 알고리즘
- * 2-1. 모든 섬들이 연결 가능하므로 모든 간선들을 구한다. (간선의 길이의 제곱을 가중치로 넣는다.)
- * 2-2. 간선들을 오름차순으로 정렬한다.
- * 2-3. 간선들을 make set하여 단위 서로소 집합으로 만든다.
- * 2-4. 간선들을 정렬된 순서로 순회하면서 사이클이 발생하지 않는 경우만 선택한다.
- * 2-5. 선택한 간선의 갯수가 N-1개가 되면 종료한다.
+ * 2-1. 모든 섬들이 연결 가능하므로 모든 간선들의 가중치를 구해서 인접 행렬에 넣는다. (간선의 길이의 제곱을 가중치로 넣는다.)
+ * 2-2. 최소 간선 배열의 0번째 인덱스 요소를 0으로 만들어서 출발 섬을 0번째 섬으로 지정한다.
+ * 2-3. 최소 간선 배열에서 방문하지 않은 섬 중 가장 짧은 길이의 간선을 가진 섬을 현재 방문할 섬으로 지정한다.
+ * 2-4. 더이상 방문할 섬이 없을 경우 종료한다.
+ * 2-5. 현재 방문한 섬을 방문처리를하고, 현재 섬으로 들어오는 가장 짧은 길이의 간선을 결과에 더한다.
+ * 2-6. 현재 섬에서 갈 수 있는 (방문하지 않은) 섬들의 간선의 길이를 최소 간선 배열에 저장된 간선보다 작다면 갱신한다.
  *
  * 3. 출력
- * 3-1. 크루스칼 알고리즘을 사용하면서 구한 최소 결과에 세율을 곱하여 소수 첫째 자리에서 반올림한다.
+ * 3-1. 프림 알고리즘을 사용하면서 구한 최소 결과에 세율을 곱하여 소수 첫째 자리에서 반올림한다.
  * 3-2. 결과를 출력한다.
  *
- * Utils..
- * - 서로소 집합 메서드들
- * - 간선 클래스
  */
 
 public class SWEA01251하나로_프림 {
@@ -40,10 +38,11 @@ public class SWEA01251하나로_프림 {
     static long[] islandXInfoArr;
     static long[] islandYInfoArr;
     static double taxRatio;
+    static long[][] islandMatrix;
 
-    static Edge[] edgeArr;
-    static int[] parents;
-
+    static long[] minEdgeArr;
+    static boolean[] isVisited;
+    static long result;
 
     public static void main(String[] args) throws IOException {
 
@@ -60,6 +59,7 @@ public class SWEA01251하나로_프림 {
             // 1-3. 각 섬의 X좌표, Y좌표를 입력받는다. (정수)
             islandXInfoArr = new long[numOfIsland];
             islandYInfoArr = new long[numOfIsland];
+            islandMatrix = new long[numOfIsland][numOfIsland];
 
             st = new StringTokenizer(br.readLine().trim());
             for (int islandIdx = 0; islandIdx < numOfIsland; islandIdx++) {
@@ -74,44 +74,31 @@ public class SWEA01251하나로_프림 {
             // 1-4. 환경 부담 세율을 입력받는다. (실수)
             taxRatio = Double.parseDouble(br.readLine());
 
-            // 2. 크루스칼 알고리즘
-            // 2-1. 모든 섬들이 연결 가능하므로 모든 간선들을 구한다. (간선의 길이의 제곱을 가중치로 넣는다.)
-            edgeArr = new Edge[numOfIsland * (numOfIsland - 1) / 2];
-            int cur = 0;
-
-            for (int fromIslandIdx = 0; fromIslandIdx < numOfIsland-1; fromIslandIdx++) {
+            // 2. 프림 알고리즘
+            // 2-1. 모든 섬들이 연결 가능하므로 모든 간선들의 가중치를 구해서 인접 행렬에 넣는다. (간선의 길이의 제곱을 가중치로 넣는다)
+            for (int fromIslandIdx = 0; fromIslandIdx < numOfIsland; fromIslandIdx++) {
                 for (int toIslandIdx = fromIslandIdx + 1; toIslandIdx < numOfIsland; toIslandIdx++) {
-                    long distance = (long) (Math.pow(islandXInfoArr[fromIslandIdx] - islandXInfoArr[toIslandIdx], 2) + Math.pow(islandYInfoArr[fromIslandIdx] - islandYInfoArr[toIslandIdx], 2));
-                    Edge curEdge = new Edge(fromIslandIdx, toIslandIdx, distance);
-                    edgeArr[cur] = curEdge;
-                    cur++;
+                    long value = (long) (Math.pow(islandXInfoArr[fromIslandIdx] - islandXInfoArr[toIslandIdx], 2) + Math.pow(islandYInfoArr[fromIslandIdx] - islandYInfoArr[toIslandIdx], 2));
+                    islandMatrix[fromIslandIdx][toIslandIdx] = value;
+                    islandMatrix[toIslandIdx][fromIslandIdx] = value;
                 }
             }
 
-            // 2-2. 간선들을 오름차순으로 정렬한다.
-            Arrays.sort(edgeArr);
+            minEdgeArr = new long[numOfIsland];
+            Arrays.fill(minEdgeArr, Long.MAX_VALUE);
 
-            parents = new int[numOfIsland];
+            // 2-2. 최소 간선 배열의 0번째 인덱스 요소를 0으로 만들어서 출발 섬을 0번째 섬으로 지정한다.
+            minEdgeArr[0] = 0;
 
-            // 2-3. 간선들을 make set하여 단위 서로소 집합으로 만든다.
-            for (int islandIdx = 0; islandIdx < numOfIsland; islandIdx++) {
-                makeSet(islandIdx);
-            }
+            isVisited = new boolean[numOfIsland];
 
-            // 2-4. 간선들을 정렬된 순서로 순회하면서 사이클이 발생하지 않는 경우만 선택한다.
-            int cnt = 0;
-            long result = 0;
+            result = 0;
 
-            for (Edge edge : edgeArr) {
-                if (union(edge.start, edge.end)) {
-                    result += edge.squaredDistance;
-                    // 2-5. 선택한 간선의 갯수가 N-1개가 되면 종료한다.
-                    if(++cnt == numOfIsland-1) break;
-                }
-            }
+            // 첫 출발은 0번 섬 부터
+            Prim();
 
             // 3. 출력
-            // 3-1. 크루스칼 알고리즘을 사용하면서 구한 최소 결과에 세율을 곱하여 소수 첫째 자리에서 반올림한다.
+            // 3-1. 프림 알고리즘을 사용하면서 구한 최소 결과에 세율을 곱하여 소수 첫째 자리에서 반올림한다.
             long finalResult = (long) Math.round(result * taxRatio);
             // 3-2. 결과를 출력한다.
             System.out.println("#" + test_case + " " + finalResult);
@@ -120,45 +107,48 @@ public class SWEA01251하나로_프림 {
 
     }
 
-    // - 서로소 집합 메서드들
-    static void makeSet(int edgeIdx) {
-        parents[edgeIdx] = -1;
-    }
+    static void Prim() {
 
-    static int findSet(int a) {
-        if (parents[a] < 0) return a;
+        int minFromIslandIdx = -1;
+        long minDistance = Long.MAX_VALUE;
 
-        return parents[a] = findSet(parents[a]); // 경로 압축
-    }
+        // 2-3. 최소 간선 배열에서 방문하지 않은 섬 중 가장 짧은 길이의 간선을 가진 섬을 현재 방문할 섬으로 지정한다.
+        for (int curFromIslandIdx = 0; curFromIslandIdx < numOfIsland; curFromIslandIdx++) {
+            if (isVisited[curFromIslandIdx]) {
+                continue;
+            }
 
-    static boolean union(int a, int b) {
-        int aRoot = findSet(a);
-        int bRoot = findSet(b);
-        if(aRoot == bRoot) return false;
-
-        // 아래 2줄 순서 주의!
-        parents[aRoot] += parents[bRoot]; // 집합 크기 관리 (절대값을 사용하면 집합의 크기가 됨)
-        parents[bRoot] = aRoot;
-        return true;
-    }
-
-    //
-
-    // - 간선 클래스
-    static class Edge implements Comparable<Edge> {
-
-        int start, end;
-        long squaredDistance;
-
-        public Edge(int start, int end, long squaredDistance) {
-            this.start = start;
-            this.end = end;
-            this.squaredDistance = squaredDistance;
+            if (minEdgeArr[curFromIslandIdx] < minDistance) {
+                minDistance = minEdgeArr[curFromIslandIdx];
+                minFromIslandIdx = curFromIslandIdx;
+            }
         }
 
-        @Override
-        public int compareTo(Edge o) {
-            return Long.compare(this.squaredDistance, o.squaredDistance);
+        // 2-4. 더이상 방문할 섬이 없을 경우 종료한다.
+        if (minFromIslandIdx == -1) {
+            return;
         }
+
+        // 2-5. 현재 방문한 섬을 방문처리를하고, 현재 섬으로 들어오는 가장 짧은 길이의 간선을 결과에 더한다.
+        isVisited[minFromIslandIdx] = true;
+        result += minDistance;
+
+        // 2-6. 현재 섬에서 갈 수 있는 (방문하지 않은) 섬들의 간선의 길이를 최소 간선 배열에 저장된 간선보다 작다면 갱신한다.
+        for (int curToIslandIdx = 0; curToIslandIdx < numOfIsland; curToIslandIdx++) {
+
+            if (isVisited[curToIslandIdx]) { // 방문한거 스킵
+                continue;
+            }
+
+            if (minFromIslandIdx == curToIslandIdx) { // 시작지점과 도착지점이 같은 점 스킵
+                continue;
+            }
+
+            if (islandMatrix[minFromIslandIdx][curToIslandIdx] < minEdgeArr[curToIslandIdx]) {
+                minEdgeArr[curToIslandIdx] = islandMatrix[minFromIslandIdx][curToIslandIdx];
+            }
+        }
+
+        Prim();
     }
 }
