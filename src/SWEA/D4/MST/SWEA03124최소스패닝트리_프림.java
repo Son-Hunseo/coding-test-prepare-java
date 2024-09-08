@@ -3,8 +3,7 @@ package SWEA.D4.MST;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
@@ -30,6 +29,9 @@ public class SWEA03124최소스패닝트리_프림 {
     static StringBuilder sb;
 
     static boolean[] isVisited;
+    static int[] minWeights;
+
+    static long sumOfWeights;
 
     public static void main(String[] args) throws IOException {
 
@@ -54,11 +56,7 @@ public class SWEA03124최소스패닝트리_프림 {
 
             // 1-3. 간선의 정보를 입력받는다. (출발노드 도착노드 가중치)
 
-            ArrayList<Edge>[] edgeListArr = new ArrayList[numOfNodes + 1];
-
-            for (int idx = 1; idx <= numOfNodes; idx++) {
-                edgeListArr[idx] = new ArrayList<>();
-            }
+            Node[] adjacentList = new Node[numOfNodes + 1];
 
             for (int edgeIdx = 0; edgeIdx < numOfEdges; edgeIdx++) {
                 st = new StringTokenizer(br.readLine().trim());
@@ -66,63 +64,70 @@ public class SWEA03124최소스패닝트리_프림 {
                 int endNodeIdx = Integer.parseInt(st.nextToken());
                 int weight = Integer.parseInt(st.nextToken());
 
-                edgeListArr[startNodeIdx].add(new Edge(startNodeIdx, endNodeIdx, weight));
-                edgeListArr[endNodeIdx].add(new Edge(startNodeIdx, endNodeIdx, weight));
+                adjacentList[startNodeIdx] = new Node(endNodeIdx, weight, adjacentList[startNodeIdx]);
+                adjacentList[endNodeIdx] = new Node(startNodeIdx, weight, adjacentList[endNodeIdx]);
             }
 
-            long sumOfWeights = 0;
+            sumOfWeights = 0;
 
             isVisited = new boolean[numOfNodes + 1];
-            isVisited[0] = true;
+            minWeights = new int[numOfNodes + 1];
+            Arrays.fill(minWeights, Integer.MAX_VALUE);
 
-            PriorityQueue<Edge> pq = new PriorityQueue<>();
+            PriorityQueue<Node> pq = new PriorityQueue<>();
 
-            pq.add(new Edge(1, 1, 0));
+            // 1번 노드를 시작점으로 하기 위해
+            // 인접 리스트의 0번 자리에 가중치가 0이며 1번 노드를 가리키는 노드를 하나 넣어둔다.
+            adjacentList[0] = new Node(1, 0, adjacentList[0]);
+            pq.offer(adjacentList[0]);
 
-            while (!pq.isEmpty()) {
-                Edge curEdge = pq.poll();
+            while(!pq.isEmpty()) {
 
-                if (isVisited[curEdge.endNodeIdx]) {
+                Node cur = pq.poll();
+
+                if (isVisited[cur.nodeNum]) {
                     continue;
                 }
 
-                isVisited[curEdge.endNodeIdx] = true;
-                sumOfWeights += curEdge.weight;
+                isVisited[cur.nodeNum] = true;
+                sumOfWeights += cur.weight;
+                System.out.println(cur.nodeNum);
+                System.out.println(Arrays.toString(minWeights));
 
-                for (Edge toEdge : edgeListArr[curEdge.endNodeIdx]) {
-                    if (isVisited[toEdge.endNodeIdx]) {
-                        return;
+                for (Node curNode = cur; curNode != null; curNode = curNode.nextNode) {
+
+                    if (isVisited[curNode.nodeNum]) {
+                        continue;
                     }
-                    pq.add(toEdge);
+                    if(curNode.weight < minWeights[curNode.nodeNum]) {
+                        minWeights[curNode.nodeNum] = curNode.weight;
+                        pq.offer(adjacentList[curNode.nodeNum]);
+                    }
                 }
             }
 
-            // 3. 출력
-            // 3-1. 결과를 출력한다.
-            sb.append(sumOfWeights);
-            System.out.println(sb);
         }
 
+        // 3. 출력
+        // 3-1. 결과를 출력한다.
+        sb.append(sumOfWeights);
+        System.out.println(sb);
     }
 
-    static class Edge implements Comparable<Edge> {
-        int startNodeIdx;
-        int endNodeIdx;
-        int weight;
+    static class Node implements Comparable<Node> {
+        int nodeNum; // 현재 노드의 번호
+        int weight; // 현재 노드로 들어오는 간선의 가중치
+        Node nextNode; // 다음 노드의 주소값
 
-        public Edge(int startNodeIdx, int endNodeIdx, int weight) {
-            this.startNodeIdx = startNodeIdx;
-            this.endNodeIdx = endNodeIdx;
+        public Node(int nodeNum, int weight, Node nextNode) {
+            this.nodeNum = nodeNum;
             this.weight = weight;
+            this.nextNode = nextNode;
         }
 
         @Override
-        public int compareTo(Edge targetEdge) {
-            if (this.weight < targetEdge.weight) {
-                return -1;
-            } else {
-                return 1;
-            }
+        public int compareTo(Node target) {
+            return Integer.compare(this.weight, target.weight);
         }
     }
 }

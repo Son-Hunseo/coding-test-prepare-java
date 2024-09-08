@@ -3,39 +3,48 @@ package SWEA.A형특훈;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 /**
- * 재선이의 연구실네트워크구성하기
+ * 재선이의 연구실 네트워크 구성하기
+ * - 포트가 AP를 설치할 수 있는 위치이지만, 그냥 편의상 다 AP라고 하겟다.
  *
  * 1. 입력
- * 1-1. 테스트케이스의 개수 T를 입력받는다.
+ * 1-1. 테스트 케이스의 갯수 T를 입력받는다.
  * 1-2. 연구실의 크기와 AP의 범위를 입력받는다.
- * 1-3. 연구실 평면도를 입력받는다. (공유기는 1~3으로 주어지고 포트는 9로 주어진다.)
+ * 1-3. 연구실 맵의 정보를 입력받는다.
+ * 1-3-1. AP의 위치 정보(9)를 리스트에 넣는다.
+ * 1-3-2. 공유기의 위치 정보와 연결가능 범위를 리스트에 넣는다.
  *
- * 2. 완전탐색 (백트래킹)
- * 2-1. 모든 포트에서 AP를 r개 선택하는 경우의 수를 뽑는다. (1 <= r <= 포트의 수)
- * 2-2. 만약 k개의 포트를 선택한 조합에서 모든 와이파이가 연결된다면, k+1 ~ 포트의 수 개수의 조합은 구할 필요가 없다.
- * 2-3. 모든 조합을 해보았는데, 와이파이가 연결되지 않는다면 -1 이다.
+ * 2. 알고리즘
+ * 2-1. 부분 집합으로 AP를 설치할 포트를 선택한다.
+ * 2-2. 해당 AP들을 선택했을 때, 모든 공유기가 연결이 되는지 확인한다.
+ * 2-2-1. 모든 공유기가 연결이 될 경우, 해당 재귀를 더 파고들 필요는 없다. (이 순간이 최소이기 때문)
+ * 2-2-2. 현재 선택한 부분집합의 크기가 현재 연결을 위한 최소 AP갯수보다 크다면 수행할 필요가 없다. (어짜피 최소가 아니기 때문)
  *
- * 3. 공유기와 연결된 여부 체크
+ * 3. 출력
+ * 3-1. 모든 공유기 연결을 위한 최소 AP 갯수를 출력한다.
  *
- * 4. 출력
- * 4-1. 모든 공유기를 연결할 수 있는 최소의 AP 개수를 출력한다.
+ * Utils
+ * - AP 클래스
+ * - 공유기 클래스
  *
+ * - 부분집합을 구하는 메서드
+ * - 모든 공유기가 연결되어있는지 확인하는 메서드
  */
 
 public class 재선이의연구실네트워크구성하기 {
 
     static BufferedReader br;
     static StringTokenizer st;
+    static StringBuilder sb;
 
-    static int sizeOfLab;
-    static int rangeOfAP;
+    static int sizeOfLab, rangeOfAP;
+    static ArrayList<AP> APList;
+    static ArrayList<shareHub> shareHubList;
 
-    static ArrayList<int[]> hubInfoList;
-    static ArrayList<int[]> APInfoList;
-    static ArrayList<int[]> CombiList;
+    static boolean[] APSelectedInfoArr;
 
     static int result;
 
@@ -44,85 +53,131 @@ public class 재선이의연구실네트워크구성하기 {
         // 1. 입력
         br = new BufferedReader(new InputStreamReader(System.in));
 
-        // 1-1. 테스트케이스의 개수 T를 입력받는다.
+        // 1-1. 테스트 케이스의 갯수 T를 입력받는다.
         int T = Integer.parseInt(br.readLine());
 
         for (int test_case = 1; test_case <= T; test_case++) {
+
             // 1-2. 연구실의 크기와 AP의 범위를 입력받는다.
             st = new StringTokenizer(br.readLine().trim());
             sizeOfLab = Integer.parseInt(st.nextToken());
             rangeOfAP = Integer.parseInt(st.nextToken());
 
-            APInfoList = new ArrayList<>();
-            hubInfoList = new ArrayList<>();
+            APList = new ArrayList<>();
+            shareHubList = new ArrayList<>();
 
-            // 1-3. 연구실 평면도를 입력받는다. (공유기는 1~3으로 주어지고 포트는 9로 주어진다.)
+            // 1-3. 연구실 맵의 정보를 입력받는다.
             for (int rowIdx = 0; rowIdx < sizeOfLab; rowIdx++) {
                 st = new StringTokenizer(br.readLine().trim());
                 for (int colIdx = 0; colIdx < sizeOfLab; colIdx++) {
-                    int curInfo = Integer.parseInt(st.nextToken());
-
-                    if (curInfo == 9) {
-                        APInfoList.add(new int[]{rowIdx, colIdx});
-                    }
-                    else if (curInfo != 0) {
-                        hubInfoList.add(new int[]{rowIdx, colIdx, curInfo});
+                    int curLocaInfo = Integer.parseInt(st.nextToken());
+                    if (curLocaInfo != 0) {
+                        // 1-3-1. AP의 위치 정보(9)를 리스트에 넣는다.
+                        if (curLocaInfo == 9) {
+                            APList.add(new AP(rowIdx, colIdx));
+                        } else { // 1-3-2. 공유기의 위치 정보와 연결가능 범위를 리스트에 넣는다.
+                            shareHubList.add(new shareHub(rowIdx, colIdx, curLocaInfo));
+                        }
                     }
                 }
             }
 
+            // 2. 알고리즘
+            APSelectedInfoArr = new boolean[APList.size()];
             result = Integer.MAX_VALUE;
 
-            CombiList = new ArrayList<>();
-            getCombinationAndCheckConnect(0, 0);
+            getPowerSetAndCheckConnect(0, 0);
 
             if (result == Integer.MAX_VALUE) {
                 result = -1;
             }
 
-            System.out.println("#" + test_case + " " + result);
+            sb = new StringBuilder().append("#").append(test_case).append(" ").append(result);
+
+            System.out.println(sb);
         }
+
     }
 
-    static void getCombinationAndCheckConnect(int selectedIdx, int APListIdx) {
+    static void getPowerSetAndCheckConnect(int elementIdx, int selectedCnt) {
 
-        // 연결되었을 경우, 해당 방향으로 더이상 재귀를 들어갈 필요가 없다.
-        if (isConnnected(CombiList)) {
-            result = Math.min(result, CombiList.size());
+        // 문제좀 잘보자!!
+        if (selectedCnt > 5) {
             return;
         }
 
-        // 기저
-        if (APListIdx == APInfoList.size()) {
+        // 2-2-2. 현재 선택한 부분집합의 크기가 현재 연결을 위한 최소 AP갯수보다 크다면 수행할 필요가 없다. (어짜피 최소가 아니기 때문)
+        if (selectedCnt >= result) {
             return;
         }
 
-        CombiList.add(APInfoList.get(APListIdx));
-        getCombinationAndCheckConnect(selectedIdx + 1, APListIdx + 1);
+        // 2-1. 부분 집합으로 AP를 설치할 포트를 선택한다.
+        // // 2-2. 해당 AP들을 선택했을 때, 모든 공유기가 연결이 되는지 확인한다.
+        if (elementIdx == APList.size()) {
 
-        CombiList.remove(APInfoList.get(APListIdx));
-        getCombinationAndCheckConnect(selectedIdx, APListIdx + 1);
+            if (isAllshareHubConnected(selectedCnt)) {
+                result = Math.min(result, selectedCnt);
+            }
+            return;
+        }
+        APSelectedInfoArr[elementIdx] = true;
+        getPowerSetAndCheckConnect(elementIdx + 1, selectedCnt + 1);
+
+        APSelectedInfoArr[elementIdx] = false;
+        getPowerSetAndCheckConnect(elementIdx + 1, selectedCnt);
+
     }
 
-    // 3. 공유기와 연결된 여부 체크
-    static boolean isConnnected(ArrayList<int[]> selectedAPInfoList) {
+    static boolean isAllshareHubConnected(int selectedCnt) {
 
-        // 3-1. 공유기와 AP의 거리로 연결여부를 체크할 수 있다.
-        boolean result = true;
-
-        if (selectedAPInfoList.size() == 0) {
+        if (selectedCnt == 0) {
             return false;
         }
 
-        for (int hubIdx = 0; hubIdx < hubInfoList.size(); hubIdx++) {
-            for (int[] AP : selectedAPInfoList) {
-                if (Math.abs(hubInfoList.get(hubIdx)[0] - AP[0]) + Math.abs(hubInfoList.get(hubIdx)[1] - AP[1]) > rangeOfAP + hubInfoList.get(hubIdx)[2]) {
-                    return false;
+        // 초기화
+        for (shareHub hub : shareHubList) {
+            hub.isConnected = false;
+        }
+
+        for (int APIdx = 0; APIdx < APList.size(); APIdx++) {
+            if (APSelectedInfoArr[APIdx]) { // 선택한 AP일 경우만
+                for (int shareHubIdx = 0; shareHubIdx < shareHubList.size(); shareHubIdx++) {
+                    if (Math.abs(shareHubList.get(shareHubIdx).rowIdx - APList.get(APIdx).rowIdx)
+                            + Math.abs(shareHubList.get(shareHubIdx).colIdx - APList.get(APIdx).colIdx)
+                            <= rangeOfAP + shareHubList.get(shareHubIdx).range) {
+                        shareHubList.get(shareHubIdx).isConnected = true;
+                    }
                 }
             }
         }
 
-        return result;
+        for (shareHub hub : shareHubList) {
+            if (!hub.isConnected) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static class AP {
+        int rowIdx, colIdx;
+
+        public AP(int rowIdx, int colIdx) {
+            this.rowIdx = rowIdx;
+            this.colIdx = colIdx;
+        }
+    }
+
+    static class shareHub {
+        int rowIdx, colIdx, range;
+        boolean isConnected;
+
+        public shareHub(int rowIdx, int colIdx, int range) {
+            this.rowIdx = rowIdx;
+            this.colIdx = colIdx;
+            this.range = range;
+        }
     }
 
 }
