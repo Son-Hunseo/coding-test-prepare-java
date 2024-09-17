@@ -1,92 +1,72 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
-import java.util.StringTokenizer;
+import java.util.Collections;
 
 public class Main {
 
-    static BufferedReader br;
-    static StringTokenizer st;
-    static StringBuilder sb;
+    public static void main(String[] args) {
 
-    static int[][] adjacentMatrix;
-    static boolean[] isVisited;
-    static int numOfSubjects;
+        Method[] methodArr = new Method[3];
 
-    static int order;
-    static int[] resultArr;
+        methodArr[0] = new Method(4, 4, 0, 100);
+        methodArr[1] = new Method(5, 5, 1, 200);
+        methodArr[2] = new Method(2, 2, 0, 100);
 
-    public static void main(String[] args) throws Exception {
+        Arrays.sort(methodArr);
 
-        br = new BufferedReader(new InputStreamReader(System.in));
-
-        st = new StringTokenizer(br.readLine().trim());
-
-        numOfSubjects = Integer.parseInt(st.nextToken());
-        int numOfEdge = Integer.parseInt(st.nextToken());
-
-        adjacentMatrix = new int[numOfSubjects + 1][numOfSubjects + 1];
-
-        for (int cnt = 0; cnt < numOfEdge; cnt++) {
-            st = new StringTokenizer(br.readLine().trim());
-            int befSubject = Integer.parseInt(st.nextToken());
-            int targetSubject = Integer.parseInt(st.nextToken());
-
-            adjacentMatrix[targetSubject][befSubject] = 1;
-        }
-
-        order = 0;
-        resultArr = new int[numOfSubjects + 1];
-        isVisited = new boolean[numOfSubjects + 1];
-
-        while (true) {
-            if (!logic()) {
-                break;
-            }
-        }
-
-        for (int idx = 1; idx <= numOfSubjects; idx++) {
-            System.out.print(resultArr[idx] + " ");
-        }
-        System.out.println();
+        System.out.println(methodArr[2].centorRowIdx);
 
     }
 
-    static boolean logic() {
+    static class Method implements Comparable<Method> {
 
-        Deque<Integer> queue = new ArrayDeque<>();
+        int centorRowIdx;
+        int centorColIdx;
+        int rotateDegree;
+        int sumOfValue;
 
-        for (int rowIdx = 1; rowIdx <= numOfSubjects; rowIdx++) {
-            boolean flag = false;
-            for (int colIdx = 1; colIdx <= numOfSubjects; colIdx++) {
-                if (adjacentMatrix[rowIdx][colIdx] == 1) {
-                    flag = true;
+        public Method(int centorRowIdx, int centorColIdx, int rotateDegree, int sumOfValue) {
+            this.centorRowIdx = centorRowIdx;
+            this.centorColIdx = centorColIdx;
+            this.rotateDegree = rotateDegree;
+            this.sumOfValue = sumOfValue;
+        }
+
+        // 2-2-1. (우선순위) 1. 유물 1차 획득가치 최대 / 2. 회전 각도 가장 작은 / 3. 회전 중심 좌표의 열이 가장 작은 구간 / 4. 회전 중심 좌표의 행이 가장 작은 구간
+        @Override
+        public int compareTo(Method m) {
+
+            if (this.sumOfValue > m.sumOfValue) {
+                return -1;
+            } else if (this.sumOfValue < m.sumOfValue) {
+                return 1;
+            } else {
+
+                if (this.rotateDegree > m.rotateDegree) {
+                    return 1;
+                } else if (this.rotateDegree < m.rotateDegree) {
+                    return -1;
+                } else {
+
+                    if (this.centorColIdx > m.centorColIdx) {
+                        return 1;
+                    } else if (this.centorColIdx < m.centorColIdx) {
+                        return -1;
+                    } else {
+
+                        if (this.centorRowIdx > m.centorRowIdx) {
+                            return 1;
+                        } else if(this.centorRowIdx < m.centorRowIdx) {
+                            return -1;
+                        } else {
+                            return 0;
+                        }
+
+                    }
+
                 }
-            }
-            if (!flag && !isVisited[rowIdx]) {
-                isVisited[rowIdx] = true;
-                queue.add(rowIdx);
+
             }
         }
 
-        if (queue.isEmpty()) {
-            return false;
-        }
-
-        order++;
-
-        while (!queue.isEmpty()) {
-            int target = queue.poll();
-
-            resultArr[target] = order;
-
-            for (int rowIdx = 1; rowIdx <= numOfSubjects; rowIdx++) {
-                adjacentMatrix[rowIdx][target] = 0;
-            }
-        }
-
-        return true;
     }
 }

@@ -20,6 +20,7 @@ public class 외워야할것_회전_전치 {
 
     /**
      * 시계 방향으로 90도 회전
+     * - 전치를하고, 좌우 대칭을 시킨다고 생각하면 외우기 쉽다.
      */
 
      static int[][] rotateMatrix1(int[][] matrix) {

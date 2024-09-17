@@ -42,7 +42,6 @@ public class SCT1_2024_상_오후1_마법의숲탐색_BFS {
 
     static BufferedReader br;
     static StringTokenizer st;
-    static StringBuilder sb;
 
     static int sizeOfRow;
     static int sizeOfCol;
