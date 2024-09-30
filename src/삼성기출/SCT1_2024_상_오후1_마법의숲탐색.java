@@ -38,7 +38,7 @@ import java.util.StringTokenizer;
  *
  */
 
-public class SCT1_2024_상_오후1_마법의숲탐색_BFS {
+public class SCT1_2024_상_오후1_마법의숲탐색 {
 
     static BufferedReader br;
     static StringTokenizer st;
